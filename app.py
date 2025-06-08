@@ -57,7 +57,7 @@ def create_captcha_image(text):
         color = (random.randint(0, 100), random.randint(0, 100), random.randint(0, 100))
         # Try to use a larger font size
         try:
-            font = ImageFont.truetype("arial.ttf", 17)  # Increased font size
+            font = ImageFont.truetype("arial.ttf", 18)  # Increased font size
         except:
             font = ImageFont.load_default()
         draw.text((x, y), char, fill=color, font=font, angle=angle)

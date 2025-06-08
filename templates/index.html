@@ -57,17 +57,24 @@
         .refresh-button:hover {
             background-color: #1976D2;
         }
+        .countdown {
+            color: #666;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
-    <h1>Custom CAPTCHA Demo</h1>
+    <!-- <h1>Custom CAPTCHA Demo</h1> -->
     <div class="captcha-container">
         <h2>Verify you're human</h2>
         <div id="captcha-image" class="captcha-image">
             <img id="captcha-img" src="" alt="CAPTCHA">
         </div>
+        <!-- <div class="countdown" id="countdown">Next refresh in: 60 seconds</div> -->
         <button onclick="refreshCaptcha()" class="refresh-button">Refresh CAPTCHA</button>
         <br>
+        <!-- <div class="countdown" id="countdown">Next refresh in: 60 seconds</div> -->
         <input type="text" id="captcha-input" placeholder="Enter CAPTCHA text">
         <button onclick="verifyCaptcha()">Verify</button>
         <div id="result"></div>
@@ -75,16 +82,45 @@
 
     <script>
         let sessionId = generateSessionId();
+        let refreshTimer = null;
+        let countdownTimer = null;
+        let secondsLeft = 60;
 
         function generateSessionId() {
             return Math.random().toString(36).substring(2, 15);
         }
 
+        function updateCountdown() {
+            const countdownElement = document.getElementById('countdown');
+            countdownElement.textContent = `Next refresh in: ${secondsLeft} seconds`;
+            secondsLeft--;
+        }
+
+        function startCountdown() {
+            secondsLeft = 60;
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+            }
+            countdownTimer = setInterval(updateCountdown, 1000);
+        }
+
         function refreshCaptcha() {
+            // Clear existing timers
+            if (refreshTimer) {
+                clearTimeout(refreshTimer);
+            }
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+            }
+
             const img = document.getElementById('captcha-img');
             img.src = `/generate-captcha?session_id=${sessionId}&t=${new Date().getTime()}`;
             document.getElementById('result').innerHTML = '';
             document.getElementById('captcha-input').value = '';
+
+            // Start new timers
+            startCountdown();
+            refreshTimer = setTimeout(refreshCaptcha, 60000);
         }
 
         async function verifyCaptcha() {
@@ -107,6 +143,8 @@
                 
                 if (data.valid) {
                     resultDiv.innerHTML = '<p class="success">✓ CAPTCHA verified successfully!</p>';
+                    sessionId = generateSessionId();  // Generate new session ID after successful verification
+                    refreshCaptcha();
                 } else {
                     resultDiv.innerHTML = '<p class="error">✗ Invalid CAPTCHA. Please try again.</p>';
                     refreshCaptcha();
