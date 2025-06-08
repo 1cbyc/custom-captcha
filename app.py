@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file, session
+from flask import Flask, request, jsonify, send_file, session, render_template
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 import random
 import string
@@ -88,6 +88,11 @@ def create_captcha_image(text):
 def generate_session_id():
     """Generate a unique session ID."""
     return hashlib.sha256(str(time.time()).encode()).hexdigest()
+
+@app.route('/')
+def index():
+    """Serve the main page."""
+    return render_template('index.html')
 
 @app.route('/generate-captcha', methods=['GET'])
 @limiter.limit("10 per minute")
