@@ -134,4 +134,4 @@ You can customize the CAPTCHA by modifying the following in `app.py`:
 
 ## Contributing
 
-Feel free to submit issues and enhancement requests! 
+Feel free to submit issues and enhancement requests via ei@nsisong.com! 
