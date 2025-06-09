@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file, session, render_template
+from flask import Flask, request, jsonify, send_file, session, render_template, redirect, url_for, send_from_directory
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 import random
 import string
@@ -57,7 +57,7 @@ def create_captcha_image(text):
         color = (random.randint(0, 100), random.randint(0, 100), random.randint(0, 100))
         # Try to use a larger font size
         try:
-            font = ImageFont.truetype("arial.ttf", 18)  # Increased font size
+            font = ImageFont.truetype("arial.ttf", 17)  # Increased font size
         except:
             font = ImageFont.load_default()
         draw.text((x, y), char, fill=color, font=font, angle=angle)
@@ -82,8 +82,17 @@ def generate_session_id():
 
 @app.route('/')
 def index():
-    """Serve the main page."""
+    """Serve the main page and clear session for new CAPTCHA."""
+    session.pop('captcha_verified', None) # Clear CAPTCHA verification status
     return render_template('index.html')
+
+@app.route('/pepu/')
+@app.route('/pepu/<path:filename>')
+def pepu_site(filename='index.html'):
+    """Serve the pepu website after CAPTCHA verification."""
+    if session.get('captcha_verified'):
+        return send_from_directory('static/pepu', filename)
+    return redirect(url_for('index'))
 
 @app.route('/generate-captcha', methods=['GET'])
 @limiter.limit("10 per minute")
@@ -141,6 +150,7 @@ def verify_captcha():
         is_valid = user_input.upper() == stored_data['text'].upper()
         if is_valid:
             del captcha_store[session_id]
+            session['captcha_verified'] = True  # this will set session variable on successful verification
         
         return jsonify({
             'valid': is_valid,

@@ -144,13 +144,19 @@
                 if (data.valid) {
                     resultDiv.innerHTML = '<p class="success">✓ CAPTCHA verified successfully!</p>';
                     sessionId = generateSessionId(); // Generate new session ID after successful verification
+                    // Redirect to the protected pepu page
+                    setTimeout(() => {
+                        window.location.href = '/pepu/'; // Redirect to the protected pepu site
+                    }, 1000); // 1 second delay to show success message
                 } else {
                     resultDiv.innerHTML = '<p class="error">✗ Invalid CAPTCHA. Please try again.</p>';
                 }
-                // Introduce a delay before refreshing the CAPTCHA
-                setTimeout(() => {
-                    refreshCaptcha();
-                }, 3000); // 3 seconds delay
+                // Introduce a delay before refreshing the CAPTCHA (only for invalid attempts now)
+                if (!data.valid) {
+                    setTimeout(() => {
+                        refreshCaptcha();
+                    }, 3000); // 3 seconds delay
+                }
             } catch (error) {
                 resultDiv.innerHTML = '<p class="error">Error verifying CAPTCHA. Please try again.</p>';
                 // Introduce a delay before refreshing the CAPTCHA in case of error
