@@ -75,7 +75,7 @@
         <div class="countdown" id="countdown">Retry Captcha in: 60 seconds</div>
         <button onclick="refreshCaptcha()" class="refresh-button">Refresh CAPTCHA</button>
         <br>
-        <!-- <div class="countdown" id="countdown">Retry Ca refresh in: 60 seconds</div> -->        <input type="text" id="captcha-input" placeholder="Enter CAPTCHA text">
+        <!-- <div class="countdown" id="countdown">Retry Ca refresh in: 60 seconds</div> -->        <input type="text" id="captcha-input" placeholder="Enter CAPTCHA text" onkeydown="if(event.key === 'Enter') verifyCaptcha()">
         <button onclick="verifyCaptcha()">Verify</button>
         <div id="result"></div>
     </div>
