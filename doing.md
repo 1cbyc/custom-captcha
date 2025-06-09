@@ -76,3 +76,5 @@ this is the code added right below the captch input side:
             print(f"Blocking request: Honeypot field {_honey_pot} was filled.")
             return "Forbidden: Access denied due to honeypot activation.", 403
 ```
+
+okay, now we have the captcha, the honeypot and the user agent blocking system working so far.

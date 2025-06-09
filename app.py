@@ -33,6 +33,13 @@ BLOCKED_USER_AGENTS = [
     "msnbot", "duckduckgo-favicons-bot", "yahoocrawler", "google-structured-data-testing-tool"
 ]
 
+# List of IP addresses to block
+# In a real application, this would ideally be loaded from a database or configuration file
+BLOCKED_IPS = [
+    # "192.168.1.100", # Example IP to block
+    # "10.0.0.5" # Another example
+]
+
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # For session management
 
@@ -46,6 +53,12 @@ def block_bots():
             if bot_ua.lower() in user_agent_lower:
                 print(f"Blocking request from User-Agent: {user_agent}") # Log blocked attempts
                 return "Forbidden: Access denied for automated clients.", 403
+    
+    # Check for blocked IP addresses
+    client_ip = request.remote_addr
+    if client_ip in BLOCKED_IPS:
+        print(f"Blocking request from IP: {client_ip}") # Log blocked attempts
+        return "Forbidden: Access denied for this IP address.", 403
 
 # Initialize rate limiter
 limiter = Limiter(
