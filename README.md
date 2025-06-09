@@ -139,6 +139,10 @@ You can customize the CAPTCHA by modifying the following in `app.py`:
 - Rate limiting rules in the `@limiter.limit()` decorators
 - Attempt limits and expiration time in the verification logic
 
+## Side Note
+
+- If you want to embed your websites, or web projects to be protected with this system, you can add the folder to the static folder and replace the `pepu` folder with your own project folder, and then go to the `app.py` python script to add the route with your web project and also add all sub folders that are pages too as a route to make sure it runs properly.
+
 ## Contributing
 
 Feel free to submit issues and enhancement requests! 
