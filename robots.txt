@@ -1,0 +1,12 @@
+User-agent: *
+Disallow: /generate-captcha
+Disallow: /verify-captcha
+Disallow: /session
+
+User-agent: Googlebot
+Allow: /
+Allow: /pepu/
+
+User-agent: *
+Allow: /
+Allow: /pepu/ 

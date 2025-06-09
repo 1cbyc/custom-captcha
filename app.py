@@ -9,8 +9,43 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import os
 
+# List of User-Agent strings to block (case-insensitive for comparison)
+# This list includes common bot names, even those of 'good' bots like Googlebot,
+# to meet the requirement of blocking all bot traffic.
+BLOCKED_USER_AGENTS = [
+    "bot", "crawl", "spider", "scraper", "http client", "http agent",
+    "python-requests", "python-urllib", "php", "java", "curl", "wget",
+    "googlebot", "bingbot", "slurp", "duckduckbot", "yandexbot",
+    "baiduspider", "aolbuild", "yahoo! slurp", "facebookexternalhit",
+    "twitterbot", "pinterestbot", "linkedinbot", "slackbot", "discordbot",
+    "semrushbot", "ahrefsbot", "mj12bot", "dotbot", "lipperhey",
+    "petalbot", "proximic", "screaming frog", "masscan", "nmap",
+    "nikto", "sqlmap", "zmscan", "goby", "dirbuster", "wfuzz",
+    "arachni", "netsparker", "burpsuite", "zap", "go-http-client",
+    "okhttp", "headlesschrome", "phantomjs", "puppeteer", "selenium",
+    "mozilla/5.0 (compatible; dotbot/1.1; http://www.dotbot.com/)",
+    "mozilla/5.0 (compatible; linkcheck/9.0; +http://www.linkcheck.com/)",
+    "mozilla/5.0 (compatible; uptimebot/1.0; +http://www.uptimebot.com/)",
+    "mozilla/5.0 (compatible; megaindex.org/bot;)",
+    "mozilla/5.0 (compatible; systranbot/1.0; +http://www.systrangroup.com/)",
+    "mozilla/5.0 (compatible; spbot/1.0; +http://www.spbot.com/)",
+    "applebot", "mediapartners-google", "adsbot-google", "google-safe-browsing",
+    "msnbot", "duckduckgo-favicons-bot", "yahoocrawler", "google-structured-data-testing-tool"
+]
+
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # For session management
+
+# Before every request, check the User-Agent
+@app.before_request
+def block_bots():
+    user_agent = request.headers.get('User-Agent')
+    if user_agent:
+        user_agent_lower = user_agent.lower()
+        for bot_ua in BLOCKED_USER_AGENTS:
+            if bot_ua.lower() in user_agent_lower:
+                print(f"Blocking request from User-Agent: {user_agent}") # Log blocked attempts
+                return "Forbidden: Access denied for automated clients.", 403
 
 # Initialize rate limiter
 limiter = Limiter(
