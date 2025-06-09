@@ -171,6 +171,12 @@ def verify_captcha():
         data = request.get_json()
         session_id = data.get('session_id')
         user_input = data.get('captcha_input')
+        honeypot_input = data.get('_honey_pot') # Get honeypot field value
+
+        # Check honeypot first: if it's filled, it's a bot
+        if honeypot_input:
+            print(f"Blocking request: Honeypot field {_honey_pot} was filled.")
+            return "Forbidden: Access denied due to honeypot activation.", 403
         
         if not session_id or not user_input:
             return jsonify({'error': 'Session ID and CAPTCHA input required'}), 400

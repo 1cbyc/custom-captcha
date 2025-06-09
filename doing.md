@@ -56,4 +56,23 @@ BLOCKED_USER_AGENTS = [
     "mozilla/5.0 (compatible; spbot/1.0; +http://www.spbot.com/)",
     "applebot", "mediapartners-google", "adsbot-google", "google-safe-browsing",
     "msnbot", "duckduckgo-favicons-bot", "yahoocrawler", "google-structured-data-testing-tool"
-]```
+]
+```
+
+
+# i also wrote a small honeypot script to trap bots to auto fill a form field in the index.html file:
+
+```html
+        <input type="text" id="_honey_pot" name="_honey_pot" style="display: none;" tabindex="-1" autocomplete="off">
+```
+
+then, i wrote it in the `app.py` file to detect if the bot fills the request. atleast the defense layer will block automated submissions.
+this is the code added right below the captch input side:
+```py
+        honeypot_input = data.get('_honey_pot') # to get honeypot field value
+
+        # to check honeypot first: if it's filled, it's a bot
+        if honeypot_input:
+            print(f"Blocking request: Honeypot field {_honey_pot} was filled.")
+            return "Forbidden: Access denied due to honeypot activation.", 403
+```
