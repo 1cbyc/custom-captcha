@@ -60,6 +60,14 @@ def block_bots():
         print(f"Blocking request from IP: {client_ip}") # Log blocked attempts
         return "Forbidden: Access denied for this IP address.", 403
 
+    # Basic Referer check for CAPTCHA-related endpoints
+    if request.path in ['/generate-captcha', '/verify-captcha']:
+        referer = request.headers.get('Referer')
+        if not referer or not referer.startswith(request.url_root):
+            print(f"Suspicious request: Missing or invalid Referer for {request.path} from {referer}")
+            # You could choose to block here, but for now, we'll just log.
+            # return "Forbidden: Invalid Referer.", 403
+
 # Initialize rate limiter
 limiter = Limiter(
     get_remote_address,
@@ -185,21 +193,44 @@ def verify_captcha():
         session_id = data.get('session_id')
         user_input = data.get('captcha_input')
         honeypot_input = data.get('_honey_pot') # Get honeypot field value
+        js_challenge_response = data.get('js_challenge_response') # Get JS challenge response
+
+        # --- Debugging Prints ---
+        print(f"DEBUG: Received session_id: {session_id}")
+        print(f"DEBUG: Received user_input: {user_input}")
+        print(f"DEBUG: Received honeypot_input: {honeypot_input}")
+        print(f"DEBUG: Received js_challenge_response: {js_challenge_response}")
+        # ------------------------
 
         # Check honeypot first: if it's filled, it's a bot
         if honeypot_input:
-            print(f"Blocking request: Honeypot field {_honey_pot} was filled.")
+            print(f"Blocking request: Honeypot field was filled.")
             return "Forbidden: Access denied due to honeypot activation.", 403
         
-        if not session_id or not user_input:
-            return jsonify({'error': 'Session ID and CAPTCHA input required'}), 400
+        if not session_id or not user_input or not js_challenge_response:
+            print(f"DEBUG: Missing required fields. session_id: {session_id}, user_input: {user_input}, js_challenge_response: {js_challenge_response}")
+            return jsonify({'error': 'Session ID, CAPTCHA input, and JS challenge response required'}), 400
         
         # Get stored CAPTCHA
         stored_data = captcha_store.get(session_id)
         
+        # --- Debugging Prints ---
+        if stored_data:
+            print(f"DEBUG: Stored CAPTCHA text: {stored_data.get('text')}")
+            print(f"DEBUG: Stored CAPTCHA expires: {stored_data.get('expires')}")
+        else:
+            print(f"DEBUG: No stored CAPTCHA data found for session_id: {session_id}")
+        # ------------------------
+
         if not stored_data or time.time() > stored_data['expires']:
+            print(f"DEBUG: CAPTCHA expired or invalid session check failed. stored_data: {stored_data is not None}, expired: {time.time() > stored_data['expires'] if stored_data else 'N/A'}")
             return jsonify({'error': 'CAPTCHA expired or invalid session'}), 400
-        
+
+        # Verify JS challenge solution (checking for the fixed string)
+        if js_challenge_response != 'js_executed_123':
+            print(f"Blocking request: JS challenge failed. Expected 'js_executed_123', Received: {js_challenge_response}")
+            return jsonify({'error': 'JS Challenge failed'}), 403
+
         # Increment attempts
         stored_data['attempts'] += 1
         
@@ -210,6 +241,11 @@ def verify_captcha():
         
         # Compare and delete the CAPTCHA after verification
         is_valid = user_input.upper() == stored_data['text'].upper()
+
+        # --- Debugging Prints ---
+        print(f"DEBUG: CAPTCHA text comparison - User Input: {user_input.upper()}, Stored Text: {stored_data['text'].upper()}, Is Valid: {is_valid}")
+        # ------------------------
+
         if is_valid:
             del captcha_store[session_id]
             session['captcha_verified'] = True  # this will set session variable on successful verification
@@ -219,6 +255,7 @@ def verify_captcha():
             'message': 'CAPTCHA verified successfully' if is_valid else 'Invalid CAPTCHA'
         })
     except Exception as e:
+        print(f"DEBUG: Exception in verify_captcha: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.errorhandler(429)

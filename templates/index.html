@@ -76,6 +76,7 @@
         <button onclick="refreshCaptcha()" class="refresh-button">Refresh CAPTCHA</button>
         <br>
         <!-- <div class="countdown" id="countdown">Retry Ca refresh in: 60 seconds</div> -->        <input type="text" id="captcha-input" placeholder="Enter CAPTCHA text" onkeydown="if(event.key === 'Enter') verifyCaptcha()">
+        <input type="text" id="js_challenge_response" name="js_challenge_response" style="display: none;" tabindex="-1" autocomplete="off">
         <input type="text" id="_honey_pot" name="_honey_pot" style="display: none;" tabindex="-1" autocomplete="off">
         <button onclick="verifyCaptcha()">Verify</button>
         <div id="result"></div>
@@ -119,13 +120,26 @@
             document.getElementById('result').innerHTML = '';
             document.getElementById('captcha-input').value = '';
 
+            // Generate new JS challenge
+            generateJsChallenge();
+
             // Start new timers
             startCountdown();
             refreshTimer = setTimeout(refreshCaptcha, 60000);
         }
 
+        function generateJsChallenge() {
+            // A simple JS challenge: set a predictable value to confirm JS execution
+            document.getElementById('js_challenge_response').value = 'js_executed_123';
+        }
+
+        function randomChoice(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
         async function verifyCaptcha() {
             const input = document.getElementById('captcha-input').value;
+            const jsChallengeResponse = document.getElementById('js_challenge_response').value; // Get JS challenge response
             const resultDiv = document.getElementById('result');
 
             try {
@@ -136,7 +150,8 @@
                     },
                     body: JSON.stringify({
                         session_id: sessionId,
-                        captcha_input: input
+                        captcha_input: input,
+                        js_challenge_response: jsChallengeResponse // Include JS challenge response
                     })
                 });
 
