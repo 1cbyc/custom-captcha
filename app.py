@@ -94,6 +94,14 @@ def pepu_site(filename='index.html'):
         return send_from_directory('static/pepu', filename)
     return redirect(url_for('index'))
 
+@app.route('/app/')
+@app.route('/app/<path:filename>')
+def app_site(filename='index.html'):
+    """Serve the app content within the pepu website."""
+    if session.get('captcha_verified'):
+        return send_from_directory('static/pepu/app', filename)
+    return redirect(url_for('index'))
+
 @app.route('/generate-captcha', methods=['GET'])
 @limiter.limit("10 per minute")
 def generate_captcha():
